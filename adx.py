@@ -1,9 +1,5 @@
 import pandas as pd
 import numpy as np
-import requests
-from math import floor
-from termcolor import colored as cl
-
 
 def get_adx(high, low, close, lookback):
     plus_dm = high.diff()
