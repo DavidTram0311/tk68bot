@@ -59,9 +59,9 @@ while True:
 
 
             #open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
-            sh = gc.open('tk68bot-raw')
+            sh = gc.open('NAME OF DATA RAW SPREADSHEET')
 
-            sc = gc.open('ADX-BOT')
+            sc = gc.open('NAME OF BOT SIGNAL SPREADSHEET')
 
             #select the first sheet 
             wks = sh[0]
