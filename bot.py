@@ -1,18 +1,14 @@
-import asyncio
-import websockets
-import json
-import requests
-import pandas as pd
-from datetime import datetime
-import pygsheets
+from adx import algo_adx
+import pandas as pd 
+from adx import get_adx
+from datetime import timedelta
 from binance.client import Client
 from config import API_KEY, API_SECRET
-from datetime import timedelta
-from adx import get_adx
+from datetime import datetime
+import pygsheets
+import os
 import time
-import os 
-from function import return_adx, algo_adx, get_data
-
+from function import Get_data_binance 
 
 client = Client(API_KEY, API_SECRET)
 cwd = os.getcwd()
@@ -20,67 +16,64 @@ cwd = os.getcwd()
 gc = pygsheets.authorize(service_file=f'{cwd}\\creds.json')
 
 client = Client(API_KEY, API_SECRET)
-symbol = "BTCUSDT"
-PERIOD_5_MIN = Client.KLINE_INTERVAL_5MINUTE
-PERIOD_15_MIN = Client.KLINE_INTERVAL_15MINUTE
+PERIOD_5M = Client.KLINE_INTERVAL_5MINUTE
+PERIOD_15M = Client.KLINE_INTERVAL_15MINUTE
+PERIOD_1H = Client.KLINE_INTERVAL_1HOUR
+PERIOD_4H = Client.KLINE_INTERVAL_4HOUR
+PERIOD_1D = Client.KLINE_INTERVAL_1DAY
 
+# Read Coin List
+coins = pd.read_csv(f'{cwd}\\coin_list.csv')
+coins=coins.drop(columns=['Unnamed: 0'])
 
-date = []
-plus_di = []
-minus_di = []
-cut_di = []
-adx = []
-signal_futu = []
-count = 0
+# Main
+sc = gc.open('ADX-BOT')
+wk = sc[1]
+
+start_time = time.time()
+start_date = datetime.now()
+
+print(f"Start program: {start_date}")
+
+count_exe = 0
 
 while True:
     try:
-        if datetime.now().minute % 5 == 0:
-            time.sleep(58)
-            count = count + 1
-            print(f'Time: {count}')
-            df = return_adx(get_data) # get adx indicator
-            df = df.sort_index(ascending=False)
-            df = df.reset_index(drop=True)
-            signal = algo_adx(df) # get the signal
-            futu = df.loc[0:0]
-            futu['signal'] = signal
+        count_exe = count_exe + 1
 
-            # add values to tracker
-            date.append(futu.iloc[0,0])
-            plus_di.append(futu.iloc[0,5])
-            minus_di.append(futu.iloc[0,6])
-            adx.append(futu.iloc[0,7])
-            cut_di.append(futu.iloc[0,8])
-            signal_futu.append(futu.iloc[0,9])
+        print(f"Start {count_exe} times: {datetime.now()}")
+        data = Get_data_binance('BTCUSDT')
+        # data = Get_data_binance(coins['symbol'][0])
+        temp = data.get_data()
 
-            # drop values
-            futu = futu.drop(columns=['open', 'high', 'low', 'close'])
+        count = 1
+        print(count)
 
+        try:
+            for coin in range(len(coins['symbol'])):
+                print(f'Check 1: {coins["symbol"][coin]}')
+                data = Get_data_binance(coins['symbol'][coin])
 
-            #open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
-            sh = gc.open('NAME OF DATA RAW SPREADSHEET')
+                temp1 = data.get_data()
+                temp = temp + temp1
 
-            sc = gc.open('NAME OF BOT SIGNAL SPREADSHEET')
-
-            #select the first sheet 
-            wks = sh[0]
-
-            wk = sc[0]
-
-            #update the first sheet with df, starting at cell B2. 
-            wks.set_dataframe(df,(0,0))
-            wk.set_dataframe(futu,(0,0))
+                if coins["symbol"][coin + 1] == 'QNTUSDT':
+                    time.sleep(1)
+                count = count + 1
+                print(f'Checkpoint 2: {count}')
+                
+            wk.update_values(f'C5', temp)
+            
+        except:
+            print(f'End {count_exe} times: {datetime.now()} after {time.time() - start_time}')
+            # Update signal into sheet
+            wk.update_values(f'C5', temp)
+        
+        time.sleep(10)
 
     except KeyboardInterrupt:
-        print("Shut Down")
-        dict = {'date': date, 
-                'DI+': plus_di, 
-                'DI-': minus_di,
-                'ADX': adx,
-                'cut_di':cut_di,
-                'signal':signal_futu}
-        
-        tracker = pd.DataFrame(dict)
-        tracker.to_csv(f'{datetime.now().strftime("%Y-%m-%d_%H%M")}-tracker.csv')
+        wk.update_values(f'C5', temp)
+        print(f'Finish {count_exe} times: {datetime.now()} after {time.time() - start_time}')
         break
+
+
