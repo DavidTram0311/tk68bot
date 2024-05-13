@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import requests
+
 
 def get_adx(high, low, close, lookback):
     plus_dm = high.diff()
@@ -20,3 +22,18 @@ def get_adx(high, low, close, lookback):
     adx = ((dx.shift(1) * (lookback - 1)) + dx) / lookback
     adx_smooth = adx.ewm(alpha = 1/lookback).mean()
     return plus_di, minus_di, adx_smooth
+
+def algo_adx(df):
+    # last > 0 # Singal: Long
+    if df.iloc[0,8] > 0:
+        if df.iloc[0,7] > df.iloc[1,7]:
+            return "LONG NOW"
+        else:
+            return "CONSIDER LONG"
+
+    # last < 0 # Singal: Short  
+    elif df.iloc[0,8] < 0:
+        if df.iloc[0,7] > df.iloc[1,7]:
+            return "SHORT NOW"
+        else:
+            return "CONSIDER SHORT"
