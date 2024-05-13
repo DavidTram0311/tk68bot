@@ -13,7 +13,7 @@ from function import Get_data_binance
 client = Client(API_KEY, API_SECRET)
 cwd = os.getcwd()
 # Authorization
-gc = pygsheets.authorize(service_file=f'{cwd}\\creds.json')
+gc = pygsheets.authorize(service_file=f'{cwd}\\creds.json') # Authorize google sheet
 
 client = Client(API_KEY, API_SECRET)
 PERIOD_5M = Client.KLINE_INTERVAL_5MINUTE
@@ -23,12 +23,12 @@ PERIOD_4H = Client.KLINE_INTERVAL_4HOUR
 PERIOD_1D = Client.KLINE_INTERVAL_1DAY
 
 # Read Coin List
-coins = pd.read_csv(f'{cwd}\\coin_list.csv')
+coins = pd.read_csv(f'{cwd}\\coin_list.csv') # Read the list future binance coin
 coins=coins.drop(columns=['Unnamed: 0'])
 
 # Main
-sc = gc.open('ADX-BOT')
-wk = sc[1]
+sc = gc.open(SPREADSHEET_NAME)
+wk = sc[1] #Choose second sheet
 
 start_time = time.time()
 start_date = datetime.now()
