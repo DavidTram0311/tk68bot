@@ -6,6 +6,10 @@ This bot retrieve BTC ticket price through binance API, then calculating the ADX
 
 # II. How to install
 
+```
+python==3.8.19
+```
+
 - Clone the code into local
   
 ```
