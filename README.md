@@ -17,4 +17,9 @@ git clone https://github.com/DavidTram0311/tk68bot
 pip install -r requirements.txt
 ```
 
+# III. How to use
+```
+python bot.py
+```
+
 
